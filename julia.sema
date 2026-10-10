@@ -1,0 +1,23 @@
+;; Julia set: z -> z*z + (-0.745 + 0.186i).
+(define width 720)
+(define height 480)
+(define max-iter 85)
+(define (escape x y n)
+  (if (or (>= n max-iter) (> (+ (* x x) (* y y)) 64))
+      n
+      (escape (+ (- (* x x) (* y y)) -0.745)
+              (+ (* 2 x y) 0.186) (+ n 1))))
+(define (channel n phase)
+  (exact (floor (* 255 (pow (+ 0.5 (* 0.5 (cos (+ (* n 0.11) phase)))) 1.4)))))
+(define (pixel px py)
+  (let* ((x (* 3.4 (- (/ px width) 0.5)))
+         (y (* 2.2666667 (- (/ py height) 0.5)))
+         (n (escape x y 0)))
+    (if (= n max-iter) "5 8 20"
+        (format "~a ~a ~a" (channel n 0.1) (channel n 2.1) (channel n 4.2)))))
+(file/write "julia.ppm"
+  (str "P3\n720 480\n255\n"
+       (string/join
+         (map (fn (y) (string/join (map (fn (x) (pixel x y)) (range width)) " "))
+              (range height)) "\n")))
+(println "Generated 345600 Julia-set pixels with Sema.")

@@ -1,0 +1,38 @@
+;; Multiresolution bloom. Sharp geometry stays at 3840; the near halo is 1920,
+;; and broad smooth halos are 480. The final merge is linear RGB at 3840.
+(define (native/check result)
+  (assert (= (:exit-code result) 0) (:stderr result)))
+(define (native/render svg path pixels)
+  (let ((source (str path ".svg")))
+    (file/write source svg)
+    (native/check (shell "rsvg-convert" "-w" (str pixels) "-h" (str pixels) "-o" path source))
+    (file/delete source)))
+(define (bloom/raster svg output prefix)
+  (let* ((filter-body (nth (string/split (nth (string/split svg "<filter") 1) "</filter>") 0))
+         (original-filter (str "<filter" filter-body "</filter>"))
+         (transparent (string/replace svg "<rect width=\"1200\" height=\"1200\" fill=\"#0a0a0b\"/>" ""))
+         (sharp-svg (string/replace transparent " filter=\"url(#bloom)\"" ""))
+         (filter-prefix "<filter id=\"bloom\" x=\"-20%\" y=\"-20%\" width=\"140%\" height=\"140%\" color-interpolation-filters=\"linearRGB\">")
+         (near-svg (string/replace transparent original-filter
+           (str filter-prefix "<feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"0.7\"/></filter>")))
+         (broad-svg (string/replace transparent original-filter
+           (str filter-prefix "<feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"2.6\" result=\"m\"/>"
+             "<feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"7\" result=\"f\"/>"
+             "<feMerge><feMergeNode in=\"f\"/><feMergeNode in=\"m\"/></feMerge></filter>")))
+         (sharp (str prefix "-sharp.png")) (near (str prefix "-near.png"))
+         (broad (str prefix "-broad.png")))
+    ;; Coarse blur passes and sharp rendering are independent native jobs.
+    (let ((jobs (list (async (native/render sharp-svg sharp 3840))
+                      (async (native/render near-svg near 1920))
+                      (async (native/render broad-svg broad 480)))))
+      (for-each (fn (job) (await job)) jobs))
+    (native/render
+      (str "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"3840\" height=\"3840\" viewBox=\"0 0 1200 1200\">"
+        "<defs><filter id=\"merge\" filterUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"1200\" height=\"1200\" color-interpolation-filters=\"linearRGB\">"
+        "<feImage xlink:href=\"" broad "\" x=\"0\" y=\"0\" width=\"1200\" height=\"1200\" preserveAspectRatio=\"none\" result=\"b\"/>"
+        "<feImage xlink:href=\"" near "\" x=\"0\" y=\"0\" width=\"1200\" height=\"1200\" preserveAspectRatio=\"none\" result=\"n\"/>"
+        "<feImage xlink:href=\"" sharp "\" x=\"0\" y=\"0\" width=\"1200\" height=\"1200\" preserveAspectRatio=\"none\" result=\"s\"/>"
+        "<feMerge><feMergeNode in=\"b\"/><feMergeNode in=\"n\"/><feMergeNode in=\"s\"/></feMerge></filter></defs>"
+        "<rect width=\"1200\" height=\"1200\" fill=\"#0a0a0b\"/>"
+        "<rect width=\"1200\" height=\"1200\" fill=\"white\" fill-opacity=\"0\" filter=\"url(#merge)\"/></svg>") output 3840)
+    (for-each file/delete (list sharp near broad))))

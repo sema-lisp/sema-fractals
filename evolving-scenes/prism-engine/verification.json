@@ -1,0 +1,29 @@
+{
+  "frame-interpolation": false,
+  "gif-loops-forever": true,
+  "language": "Sema",
+  "loop-endpoints-identical": true,
+  "name": "prism-engine",
+  "probe": {
+    "format": {
+      "duration": "6.000000"
+    },
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "color_primaries": "bt709",
+        "color_space": "bt709",
+        "color_transfer": "iec61966-2-1",
+        "height": 1920,
+        "nb_read_frames": "360",
+        "r_frame_rate": "60/1",
+        "width": 1920
+      }
+    ]
+  },
+  "supersampling": [
+    3840,
+    3840
+  ]
+}

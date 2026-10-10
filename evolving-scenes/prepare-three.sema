@@ -1,0 +1,13 @@
+;; Reuse the verified Sema rendering and encoding tool for three new designs.
+(define scenes '("wave-atlas" "comet-ballet" "prism-engine"))
+(for-each (fn (name)
+  (assert (= (:exit-code (shell "mkdir" "-p" name)) 0))
+  (file/copy (str name ".sema") (str name "/" name ".sema"))
+  (file/write (str name "/render.sema")
+    (string/replace (file/read "render.sema") "kinetic-loom" name))
+  (file/write (str name "/animate.sema")
+    (string/replace
+      (string/replace (string/replace (file/read "animate.sema") "kinetic-loom" name)
+        "../memory-fractals" "../../memory-fractals")
+      "Kinetic Loom" name))) scenes)
+(println "Prepared three separate Sema animation pipelines.")

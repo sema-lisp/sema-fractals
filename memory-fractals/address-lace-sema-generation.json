@@ -1,0 +1,24 @@
+{
+  "bloom": "three-scale, linearRGB",
+  "elapsed-ms": 874845,
+  "fps": 60,
+  "frames": 240,
+  "language": "Sema",
+  "loop-endpoints-identical": true,
+  "name": "address-lace",
+  "native-tools": [
+    "rsvg-convert",
+    "ffmpeg",
+    "ffprobe"
+  ],
+  "paths-generated": 8908474,
+  "raster-resolution": [
+    3840,
+    3840
+  ],
+  "resolution": [
+    1920,
+    1920
+  ],
+  "svg-bytes-generated": 498761843
+}

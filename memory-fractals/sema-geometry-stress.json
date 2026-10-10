@@ -1,0 +1,57 @@
+[
+  {
+    "attempted-paths": 195311,
+    "batching-ms": 13,
+    "case": "lace-depth-7",
+    "culled": 92507,
+    "generation-ms": 811,
+    "maximum-coordinate": 1037.1918969517187,
+    "minimum-coordinate": 167.4599245569182,
+    "paths": 102804,
+    "svg-bytes": 4154399
+  },
+  {
+    "attempted-paths": 976561,
+    "batching-ms": 10,
+    "case": "lace-depth-8",
+    "culled": 873757,
+    "generation-ms": 4082,
+    "maximum-coordinate": 1037.244310356746,
+    "minimum-coordinate": 167.4285171493273,
+    "paths": 102804,
+    "svg-bytes": 4154399
+  },
+  {
+    "attempted-paths": 121248,
+    "batching-ms": 10,
+    "case": "braid-depth-7",
+    "culled": 1,
+    "generation-ms": 1004,
+    "maximum-coordinate": 1016.8485771721522,
+    "minimum-coordinate": 158.5997983693141,
+    "paths": 121247,
+    "svg-bytes": 3830682
+  },
+  {
+    "attempted-paths": 311696,
+    "batching-ms": 108,
+    "case": "coral-depth-6",
+    "culled": 0,
+    "generation-ms": 1947,
+    "maximum-coordinate": 967.2082928575303,
+    "minimum-coordinate": 230.76001814253067,
+    "paths": 311696,
+    "svg-bytes": 9838500
+  },
+  {
+    "attempted-paths": 1229200,
+    "batching-ms": 403,
+    "case": "coral-depth-7",
+    "culled": 22936,
+    "generation-ms": 8976,
+    "maximum-coordinate": 968.6382334432071,
+    "minimum-coordinate": 229.3058419678607,
+    "paths": 1206264,
+    "svg-bytes": 38071170
+  }
+]

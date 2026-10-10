@@ -1,0 +1,8 @@
+;; Bundle the Sema libraries into a bytecode-compilable animation tool.
+(file/write "native-tool.sema"
+  (str (file/read "svg-canvas.sema") "\n" (file/read "animated-geometry.sema") "\n"
+       (string/replace (string/replace (file/read "render-native.sema")
+         "(load \"svg-canvas.sema\")" "") "(load \"animated-geometry.sema\")" "")))
+(define result (shell "sema" "compile" "native-tool.sema"))
+(assert (= (:exit-code result) 0) (:stderr result))
+(println "Built native-tool.semac with Sema.")

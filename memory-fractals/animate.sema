@@ -1,0 +1,41 @@
+;; Coordinate all native renderers and verify their outputs, entirely in Sema.
+(define frames (string/to-number (or (env "FRACTAL_FRAMES") "240")))
+(assert (and (integer? frames) (>= frames 4) (<= frames 3600)) "FRACTAL_FRAMES must be an integer between 4 and 3600")
+(define (check result context)
+  (assert (= (:exit-code result) 0) (str context ": " (:stderr result))))
+(define (render-one name)
+  (println (str "Starting " name " at 1920 x 1920, 60 fps"))
+  (let* ((output (str name "-1920-60fps-loop.mp4"))
+         (command (str "FRACTAL_MODE=stream FRACTAL_NAME=" (shell/quote name)
+           " FRACTAL_FRAMES=" (shell/quote (str frames))
+           " sema --no-llm native-tool.semac 2>" (shell/quote (str name "-render.log"))
+           " | ffmpeg -v error -y -f image2pipe -c:v png -framerate 60 -i pipe:0"
+           " -vf scale=1920:1920:flags=lanczos -an -c:v libx264 -preset medium -crf 16"
+           " -pix_fmt yuv420p -movflags +faststart " (shell/quote output)
+           " 2>" (shell/quote (str name "-encode.log")))))
+    (check (shell "bash" "-o" "pipefail" "-c" command) (str name " pipeline; inspect render/encode logs"))
+    (check (shell "ffmpeg" "-v" "error" "-y" "-i" output "-filter_complex"
+      "fps=20,scale=640:640:flags=lanczos,split[a][b];[a]palettegen=stats_mode=full[p];[b][p]paletteuse=dither=sierra2_4a"
+      "-loop" "0" (str name "-bloom-preview.gif")) "GIF preview")
+    (let* ((result (shell "ffprobe" "-v" "error" "-count_frames" "-show_entries"
+             "stream=width,height,nb_read_frames,r_frame_rate:format=duration" "-of" "json" output))
+           (probe (begin (check result "Video probe") (json/decode (:stdout result))))
+           (video (nth (:streams probe) 0))
+           (generation (json/decode (file/read (str name "-sema-generation.json")))))
+      (assert (= (:width video) 1920) "Wrong output width")
+      (assert (= (:height video) 1920) "Wrong output height")
+      (assert (= (:r_frame_rate video) "60/1") "Wrong frame rate")
+      (assert (= (string/to-number (:nb_read_frames video)) frames) "Missing frames")
+      (file/write (str name "-sema-verification.json")
+        (json/encode-pretty (assoc generation :video probe)))
+      (println (str "Completed and verified " output))
+      generation)))
+(define selection (env "FRACTAL_NAME"))
+(define names (if selection (list selection) '("address-lace" "signed-braid" "phase-coral")))
+(for-each (fn (name)
+  (assert (member name '("address-lace" "signed-braid" "phase-coral")) "Unknown FRACTAL_NAME")) names)
+;; Each async task drives an independent Sema subprocess plus its native codecs.
+(define tasks (map (fn (name) (async (render-one name))) names))
+(define results (map (fn (task) (await task)) tasks))
+(file/write "sema-stress-results.json" (json/encode-pretty results))
+(println "All selected Sema-rendered loops passed verification.")

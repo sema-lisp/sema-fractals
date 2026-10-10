@@ -1,0 +1,42 @@
+;; Build, render, encode, and verify the scene using Sema as the coordinator.
+(define (check result context)
+  (assert (= (:exit-code result) 0) (str context ": " (:stderr result))))
+(file/write "loom-tool.sema"
+  (str (file/read "../memory-fractals/svg-canvas.sema") "\n"
+       (string/replace (file/read "kinetic-loom.sema") "(load \"../memory-fractals/svg-canvas.sema\")" "") "\n"
+       (string/replace (file/read "render.sema") "(load \"kinetic-loom.sema\")" "")))
+(check (shell "sema" "compile" "loom-tool.sema") "Sema compilation")
+(println "Rendering Kinetic Loom: 1920 square, 60 fps, six-second periodic cycle.")
+(check (shell "bash" "-o" "pipefail" "-c"
+  "SCENE_MODE=stream sema --no-llm loom-tool.semac 2>render.log | ffmpeg -v error -y -f image2pipe -c:v png -framerate 60 -i pipe:0 -vf scale=1920:1920:flags=lanczos:out_color_matrix=bt709 -c:v libx264 -preset medium -crf 16 -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc iec61966-2-1 -movflags +faststart kinetic-loom-1920-60fps.mp4 2>encode.log") "Scene encoding; inspect render.log and encode.log")
+;; Explicit H.264 VUI metadata ensures colour tags survive the encoder wrapper.
+;; This is a lossless remux: the video frames are not encoded again.
+(check (shell "ffmpeg" "-v" "error" "-y" "-i" "kinetic-loom-1920-60fps.mp4"
+  "-c" "copy" "-bsf:v" "h264_metadata=colour_primaries=1:transfer_characteristics=13:matrix_coefficients=1"
+  "-movflags" "+faststart" ".loom-tagged.mp4") "Colour metadata")
+(file/rename ".loom-tagged.mp4" "kinetic-loom-1920-60fps.mp4")
+(check (shell "ffmpeg" "-v" "error" "-y" "-i" "kinetic-loom-1920-60fps.mp4"
+  "-filter_complex" "fps=20,scale=640:640:flags=lanczos,split[a][b];[a]palettegen=stats_mode=full[p];[b][p]paletteuse=dither=sierra2_4a"
+  "-loop" "0" "kinetic-loom-preview.gif") "GIF preview")
+(define result (shell "ffprobe" "-v" "error" "-count_frames" "-show_entries"
+  "stream=width,height,nb_read_frames,r_frame_rate,color_space,color_transfer,color_primaries:format=duration" "-of" "json" "kinetic-loom-1920-60fps.mp4"))
+(check result "Video inspection")
+(define probe (json/decode (:stdout result)))
+(define video (nth (:streams probe) 0))
+(assert (= (:width video) 1920) "Wrong width")
+(assert (= (:height video) 1920) "Wrong height")
+(assert (= (:r_frame_rate video) "60/1") "Wrong frame rate")
+(assert (= (:nb_read_frames video) "360") "Missing video frames")
+(assert (= (:color_space video) "bt709") "Wrong colour matrix")
+(assert (= (:color_primaries video) "bt709") "Wrong colour primaries")
+(assert (= (:color_transfer video) "iec61966-2-1") "Wrong transfer function")
+(check (shell "ffmpeg" "-v" "error" "-xerror" "-i" "kinetic-loom-1920-60fps.mp4" "-f" "null" "-") "Full video decode")
+(define gif (file/read-bytes "kinetic-loom-preview.gif"))
+(define loop-offset (bytes/find gif "NETSCAPE2.0"))
+(assert loop-offset "Missing GIF loop flag")
+(assert (and (= (bytevector-u8-ref gif (+ loop-offset 13)) 0)
+             (= (bytevector-u8-ref gif (+ loop-offset 14)) 0)) "GIF does not loop indefinitely")
+(file/write "verification.json" (json/encode-pretty
+  {:name "Kinetic Loom" :language "Sema" :loop-endpoints-identical #t
+   :frame-interpolation #f :supersampling [3840 3840] :gif-loops-forever #t :probe probe}))
+(println "Kinetic Loom completed and verified.")

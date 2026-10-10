@@ -1,0 +1,39 @@
+{
+  "bloom": "three-scale, linearRGB",
+  "elapsed-ms": 969244,
+  "fps": 60,
+  "frames": 240,
+  "language": "Sema",
+  "loop-endpoints-identical": true,
+  "name": "phase-coral",
+  "native-tools": [
+    "rsvg-convert",
+    "ffmpeg",
+    "ffprobe"
+  ],
+  "paths-generated": 19756800,
+  "raster-resolution": [
+    3840,
+    3840
+  ],
+  "resolution": [
+    1920,
+    1920
+  ],
+  "svg-bytes-generated": 623825253,
+  "video": {
+    "format": {
+      "duration": "4.000000"
+    },
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "height": 1920,
+        "nb_read_frames": "240",
+        "r_frame_rate": "60/1",
+        "width": 1920
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "folded-crown",
+    "frames": 32,
+    "gif_bytes": 1862556,
+    "loop": true
+  },
+  {
+    "name": "alternating-tide",
+    "frames": 32,
+    "gif_bytes": 2006796,
+    "loop": true
+  },
+  {
+    "name": "pole-garden",
+    "frames": 32,
+    "gif_bytes": 2272112,
+    "loop": true
+  }
+]

@@ -1,0 +1,10 @@
+;; Run independent Sema animation processes concurrently.
+(define scenes '("wave-atlas" "comet-ballet" "prism-engine"))
+(define jobs (map (fn (name)
+  (async
+    (println (str "Starting " name))
+    (let ((result (shell "sema" "--no-llm" "animate.sema" {:cwd name})))
+      (assert (= (:exit-code result) 0) (str name ": " (:stderr result)))
+      (println (:stdout result))))) scenes))
+(for-each (fn (job) (await job)) jobs)
+(println "All three animations completed and verified.")

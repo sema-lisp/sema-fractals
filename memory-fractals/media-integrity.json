@@ -1,0 +1,23 @@
+[
+  {
+    "gif-bytes": 4562848,
+    "gif-loops-forever": true,
+    "mp4-bytes": 3040980,
+    "name": "address-lace",
+    "strict-video-decode-passed": true
+  },
+  {
+    "gif-bytes": 6739933,
+    "gif-loops-forever": true,
+    "mp4-bytes": 5497011,
+    "name": "signed-braid",
+    "strict-video-decode-passed": true
+  },
+  {
+    "gif-bytes": 5030053,
+    "gif-loops-forever": true,
+    "mp4-bytes": 5339056,
+    "name": "phase-coral",
+    "strict-video-decode-passed": true
+  }
+]
