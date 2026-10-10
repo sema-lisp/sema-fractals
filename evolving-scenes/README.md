@@ -15,4 +15,3 @@ Run from this directory: sema --no-llm animate.sema. To regenerate only the stil
 - Prism Engine: nested octahedral cages with different rotations and changing scales.
 
 Run all three from this directory: sema --no-llm prepare-three.sema, then sema --no-llm animate-three.sema. The directories wave-atlas/, comet-ballet/, and prism-engine/ contain the sources and outputs.
-

@@ -35,7 +35,7 @@ sema --no-llm animate-three.sema  # Wave Atlas, Comet Ballet, Prism Engine
 
 ## Setup and usage
 
-Install the tools on macOS:
+Requires Sema 1.37.0 or later, librsvg, and FFmpeg. Install the tools on macOS:
 
 ```sh
 brew install helgesverre/tap/sema-lang librsvg ffmpeg
